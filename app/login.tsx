@@ -4,23 +4,22 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRouter} from "expo-router";
 
-const LoginScreen = () => {
+export default function LoginScreen() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const navigation = useRouter()
 
-    const handleLogin = async () => {
+    async function login()  {
         try {
-            const response = await axios.post('http://192.168.1.29:8000/login', { username, password });
+            const response = await axios.post('http://192.168.8.105:8000/login', { username, password });
             await AsyncStorage.setItem('jwtToken', response.data.token);
             console.log('Token:', response.data.token);
             navigation.replace('/(tabs)/api-cars');
             alert('Login successfully');
         } catch (error) {
-
             alert(error);
         }
-    };
+    }
 
     return (
         <View style={styles.container}>
@@ -40,7 +39,7 @@ const LoginScreen = () => {
                 onChangeText={setPassword}
                 value={password}
             />
-            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <TouchableOpacity style={styles.button} onPress={login}>
                 <Text style={styles.buttonText}>Se connecter</Text>
             </TouchableOpacity>
         </View>
@@ -95,4 +94,3 @@ const styles = StyleSheet.create({
 });
 
 
-export default LoginScreen;
