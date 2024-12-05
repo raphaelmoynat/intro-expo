@@ -8,6 +8,9 @@ import * as FileSystem from 'expo-file-system';
 export default function AudioScreen() {
     const [recording, setRecording] = React.useState();
     const [recordings, setRecordings] = React.useState([]);
+    const [textApi, setTextApi] = React.useState('');
+    const [ollamaResponse, setOllamaResponse] = React.useState('');
+
 
 
 
@@ -98,10 +101,41 @@ export default function AudioScreen() {
 
             const data = await response.json();
             console.log(data);
+
+            if (data.text) {
+                setTextApi(data.text)
+                await sendTextToOllama(data.text);
+            }
         } catch (error) {
             console.error('Erreur :', error);
         }
     }
+
+    async function sendTextToOllama(responseText) {
+        try {
+            const body = {
+                stream: false,
+                prompt: responseText,
+                model: 'llama3.2',
+            };
+
+            const response = await fetch('https://ollama.esdlyon.dev/api/generate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(body),
+            });
+
+           const data = await response.json();
+           setOllamaResponse(data.response)
+           console.log(data.response)
+
+        } catch (error) {
+            console.error('Erreur :', error);
+        }
+    }
+
 
 
 
@@ -134,6 +168,16 @@ export default function AudioScreen() {
                     <Text style={styles.emptyText}>Aucun enregistrement trouvé</Text>
                 }
             />
+            {textApi ? (
+                <View style={styles.textApiContainer}>
+                    <Text>{textApi}</Text>
+                </View>
+            ) : null}
+            {ollamaResponse ? (
+                <View style={styles.textApiContainer}>
+                    <Text>{ollamaResponse}</Text>
+                </View>
+            ) : null}
 
             <Button
                 title={recording ? 'Stop Recording' : 'Start Recording'}
@@ -196,5 +240,18 @@ const styles = StyleSheet.create({
     emptyText: {
         textAlign: 'center',
         marginTop: 16,
+    },
+    textApiContainer: {
+        marginTop: 16,
+        padding: 16,
+        borderWidth: 1,
+        borderColor: '#ccc',
+        borderRadius: 8,
+        backgroundColor: '#f9f9f9',
+    },
+    textApi: {
+        fontWeight: 'bold',
+        fontSize: 16,
+        marginBottom: 8,
     },
 });
