@@ -15,7 +15,7 @@ export default function RootLayout() {
             if (!token) {
                 router.replace('/login');
             }else{
-                router.replace('/(tabs)/api-cars');
+                router.replace('/app/api-cars');
             }
         };
 

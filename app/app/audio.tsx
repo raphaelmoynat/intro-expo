@@ -2,8 +2,10 @@ import React from 'react';
 import {StyleSheet, Text, View, Button, ScrollView, FlatList, TouchableOpacity} from 'react-native';
 import { Audio } from 'expo-av';
 import {index} from "@zxing/text-encoding/es2015/encoding/indexes";
+import * as FileSystem from 'expo-file-system';
 
-export default function App() {
+
+export default function AudioScreen() {
     const [recording, setRecording] = React.useState();
     const [recordings, setRecordings] = React.useState([]);
 
@@ -21,7 +23,7 @@ export default function App() {
                 const { recording } = await Audio.Recording.createAsync({
                     android: {
                         extension: ".wav",
-                        outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_DEFAULT,
+                        outputFormat: Audio.RECORDING_OPTION_ANDROID_OUTPUT_FORMAT_WAVE,
                         audioEncoder: Audio.RECORDING_OPTION_ANDROID_AUDIO_ENCODER_DEFAULT,
                         sampleRate: 16000,
                         numberOfChannels: 1,
@@ -53,6 +55,10 @@ export default function App() {
         const uri = recording.getURI();
         console.log("Audio file stored at:", uri);
 
+        await sendAudioToAPI(uri);
+
+        const recordingsDir = `${FileSystem.documentDirectory}recordings/`;
+
         let allRecordings = [...recordings];
         // @ts-ignore
         const { sound, status } = await recording.createNewLoadedSoundAsync();
@@ -65,6 +71,39 @@ export default function App() {
 
         setRecordings(allRecordings);
     }
+
+
+    async function sendAudioToAPI(uri) {
+        try {
+            const formData = new FormData();
+
+            // @ts-ignore
+            formData.append('file', {
+                uri: uri,
+                name: 'recording.wav',
+                type: 'audio/wav',
+            });
+            formData.append('model', 'base');
+            formData.append('language', 'fr');
+            formData.append('initial_prompt', 'string');
+
+            const response = await fetch('http://10.9.65.3:8000/v1/transcriptions', {
+                method: 'POST',
+                headers: {
+                    Authorization: 'Bearer dummy_api_key',
+                    'Content-Type': 'multipart/form-data',
+                },
+                body: formData,
+            });
+
+            const data = await response.json();
+            console.log(data);
+        } catch (error) {
+            console.error('Erreur :', error);
+        }
+    }
+
+
 
     function getDurationFormatted(milliseconds: number) {
         const minutes = milliseconds / 1000 / 60;
@@ -79,7 +118,6 @@ export default function App() {
 
     return (
         <ScrollView style={styles.container}>
-
             <FlatList
                 data={recordings}
                 keyExtractor={(item, index) => index.toString()}
@@ -98,7 +136,6 @@ export default function App() {
             />
 
             <Button
-
                 title={recording ? 'Stop Recording' : 'Start Recording'}
                 onPress={recording ? stopRecording : startRecording}
             />

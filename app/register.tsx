@@ -1,29 +1,36 @@
 import React, { useState } from 'react';
-import { Button, TextInput, View, Text, StyleSheet, TouchableOpacity, Alert } from 'react-native';
+import { TextInput, View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import {useRouter} from "expo-router";
+import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
-    const navigation = useRouter()
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const navigation = useRouter();
 
-    async function login()  {
-        try {
-            const response = await axios.post('http://192.168.8.105:8000/login', { username, password });
-            await AsyncStorage.setItem('jwtToken', response.data.token);
-            console.log('Token:', response.data.token);
-            navigation.replace('/app/api-cars');
-            alert('Login successfully');
-        } catch (error) {
+    async function register(){
+        if (password !== confirmPassword) {
+            alert('passwords do not match');
+            return;
+        }
+        try{
+            await axios.post('http://192.168.8.105:8000/register',{ username, password })
+                .then((response) => {
+                    alert("Register successfully");
+                    navigation.replace('/login');
+
+                })
+        }catch (error) {
             alert(error);
         }
+
+
     }
 
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Bienvenue</Text>
+            <Text style={styles.title}>Register</Text>
             <TextInput
                 style={styles.input}
                 placeholder="Nom d'utilisateur"
@@ -39,13 +46,22 @@ export default function LoginScreen() {
                 onChangeText={setPassword}
                 value={password}
             />
-            <TouchableOpacity style={styles.button} onPress={login}>
-                <Text style={styles.buttonText}>Se connecter</Text>
+            <TextInput
+                style={styles.input}
+                placeholder="Confirmer le mot de passe"
+                placeholderTextColor="#888"
+                secureTextEntry={true}
+                onChangeText={setConfirmPassword}
+                value={confirmPassword}
+            />
+            <TouchableOpacity style={styles.button} onPress={register}>
+                <Text style={styles.buttonText}>S'inscrire</Text>
             </TouchableOpacity>
         </View>
     );
-};
 
+
+}
 
 const styles = StyleSheet.create({
     container: {
@@ -59,11 +75,6 @@ const styles = StyleSheet.create({
         fontSize: 28,
         fontWeight: 'bold',
         color: '#333',
-        marginBottom: 20,
-    },
-    subtitle: {
-        fontSize: 16,
-        color: '#555',
         marginBottom: 20,
     },
     input: {
@@ -92,5 +103,3 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
     },
 });
-
-

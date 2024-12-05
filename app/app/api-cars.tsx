@@ -55,39 +55,41 @@ export default function CarsScreen() {
 
 
     return (
-        <ScrollView style={styles.container}>
-            <Text style={styles.title}>Cars</Text>
-            <View style={styles.authContainer}>
-                <Text style={styles.authStatus}>
-                    {isAuthenticated ? 'Statut : Connecté' : 'Statut : Déconnecté'}
-                </Text>
-                {isAuthenticated && (
-                    <Button title="Se déconnecter" onPress={logout} color="#FF5733" />
-                )}
-            </View>
-
-
-            <FlatList
-                data={carData}
-                keyExtractor={(item, index) => index.toString()}
-                renderItem={({ item }) => (
-                    <View style={styles.carContainer}>
-                        <Text style={styles.carName}>Nom : {item.name}</Text>
-                        <Text>Marque : {item.brand}</Text>
-                        <Text>Puissance : {item.power} cv</Text>
-                        {item.author && item.author.username ? (
-                            <Text>Author : {item.author.username}</Text>
-                        ) : (
-                            <Text>Author : Non spécifié</Text>
+        <FlatList
+            style={styles.container}
+            data={carData}
+            keyExtractor={(item, index) => index.toString()}
+            renderItem={({ item }) => (
+                <View style={styles.carContainer}>
+                    <Text style={styles.carName}>Nom : {item.name}</Text>
+                    <Text>Marque : {item.brand}</Text>
+                    <Text>Puissance : {item.power} cv</Text>
+                    {item.author && item.author.username ? (
+                        <Text>Author : {item.author.username}</Text>
+                    ) : (
+                        <Text>Author : Non spécifié</Text>
+                    )}
+                </View>
+            )}
+            ListHeaderComponent={
+                <>
+                    <Text style={styles.title}>Cars</Text>
+                    <View style={styles.authContainer}>
+                        <Text style={styles.authStatus}>
+                            {isAuthenticated ? 'Statut : Connecté' : 'Statut : Déconnecté'}
+                        </Text>
+                        {isAuthenticated && (
+                            <Button title="Se déconnecter" onPress={logout} color="#FF5733" />
                         )}
                     </View>
-                )}
-                ListEmptyComponent={
-                    <Text style={styles.emptyText}>Aucune voiture trouvée.</Text>
-                }
-            />
-        </ScrollView>
+                </>
+            }
+            ListEmptyComponent={
+                <Text style={styles.emptyText}>Aucune voiture trouvée.</Text>
+            }
+        />
     );
+
 }
 
 const styles = StyleSheet.create({
