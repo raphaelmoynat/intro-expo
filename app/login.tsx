@@ -11,10 +11,10 @@ export default function LoginScreen() {
 
     async function login()  {
         try {
-            const response = await axios.post('http://192.168.8.105:8000/login', { username, password });
+            const response = await axios.post('https://felix.esdlyon.dev/login', { username, password });
             await AsyncStorage.setItem('jwtToken', response.data.token);
             console.log('Token:', response.data.token);
-            navigation.replace('/app/api-cars');
+            navigation.replace('/app/audio');
             alert('Login successfully');
         } catch (error) {
             alert(error);

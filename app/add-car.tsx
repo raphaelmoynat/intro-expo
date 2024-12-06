@@ -5,7 +5,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {useRouter} from "expo-router";
 
 
-const AddCarScreen = () => {
+async function AddCarScreen()  {
     const navigation = useRouter()
     const [name, setName] = useState('');
     const [brand, setBrand] = useState('');
@@ -26,7 +26,7 @@ const AddCarScreen = () => {
             );
 
             Alert.alert('Success', response.data.message);
-            navigation.replace('/(tabs)/api-cars');
+            navigation.replace('/app/api-cars');
 
         } catch (error) {
             alert(error);
@@ -75,4 +75,3 @@ const styles = StyleSheet.create({
     },
 });
 
-export default AddCarScreen;

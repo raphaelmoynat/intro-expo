@@ -1,10 +1,10 @@
 import React, {useState} from 'react';
 import {StyleSheet, Text, View, Button, ScrollView, FlatList, TouchableOpacity, Alert} from 'react-native';
 import { Audio } from 'expo-av';
-import {index} from "@zxing/text-encoding/es2015/encoding/indexes";
 import * as FileSystem from 'expo-file-system';
 import Icon from 'react-native-vector-icons/Ionicons'
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useNavigation } from '@react-navigation/native';
 
 
 export default function AudioScreen() {
@@ -15,6 +15,7 @@ export default function AudioScreen() {
     const [ollamaResponse, setOllamaResponse] = React.useState('');
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [conv, setConv] = React.useState('')
+    const navigation = useNavigation();
 
     async function checkAuth() {
         try {
@@ -69,9 +70,7 @@ export default function AudioScreen() {
     async function stopRecording() {
         setRecording(undefined);
 
-        // @ts-ignore
         await recording.stopAndUnloadAsync();
-        // @ts-ignore
         const uri = recording.getURI();
         console.log("Audio file stored at:", uri);
 
@@ -80,7 +79,6 @@ export default function AudioScreen() {
         const recordingsDir = `${FileSystem.documentDirectory}recordings/`;
 
         let allRecordings = [...recordings];
-        // @ts-ignore
         const {sound, status} = await recording.createNewLoadedSoundAsync();
         // @ts-ignore
         allRecordings.push({
@@ -105,7 +103,6 @@ export default function AudioScreen() {
 
             const formData = new FormData();
 
-            // @ts-ignore
             formData.append('file', {
                 uri: uri,
                 name: 'recording.wav',
@@ -128,12 +125,11 @@ export default function AudioScreen() {
 
             if (data.text) {
                 setTextApi(data.text)
-                // @ts-ignore
                 setConv(prev => [...prev, {type: 'question', text: data.text}]);
                 await sendTextToOllama(data.text);
             }
         } catch (error) {
-            console.error('Erreur :', error);
+            console.log('Erreur :', error);
         }
     }
 
@@ -163,11 +159,11 @@ export default function AudioScreen() {
             setTextApi(data.message)
             console.log("message ollama: " + data.message)
 
-
+            setConv(prev => [...prev, { type: 'response', text: data.message}]);
             readTextCoqui(data.message)
 
         } catch (error) {
-            console.error('Erreur :', error);
+            console.log( error);
         }
     }
 
@@ -189,28 +185,11 @@ export default function AudioScreen() {
                     Authorization: `Bearer ${token}`,
                 },
             });
-
-            const blob = await response.blob();
-
-            const audioFileUri = URL.createObjectURL(blob);
-
-            const {sound} = await Audio.Sound.createAsync({uri: audioFileUri});
+            console.log(response)
 
 
-            // @ts-ignore
-            setConv((prev) => [
-                ...prev,
-                {
-                    type: 'response',
-                    text: textFromOllama,
-                    audio: {uri: audioFileUri, sound},
-                },
-            ]);
-
-
-            console.log('Audio:', textFromOllama);
         } catch (error) {
-            console.error('Erreur:', error);
+            console.log(error);
         }
     }
 
@@ -239,7 +218,7 @@ export default function AudioScreen() {
     }
 
 
-        return (
+    return (
             <View style={styles.container}>
                 ListHeaderComponent={
                 <>
@@ -247,8 +226,10 @@ export default function AudioScreen() {
                         <Text style={styles.authStatus}>
                             {isAuthenticated ? 'Statut : Connecté' : 'Statut : Déconnecté'}
                         </Text>
-                        {isAuthenticated && (
+                        {isAuthenticated ? (
                             <Button title="Se déconnecter" onPress={logout} color="#FF5733"/>
+                        ): (
+                            <Button title="Se connecter" onPress={() => navigation.navigate('login')} color="blue"/>
                         )}
                     </View>
                 </>
@@ -273,13 +254,7 @@ export default function AudioScreen() {
                                 ]}
                             >
                                 <Text style={styles.messageText}>{item.text}</Text>
-                                {item.audio && (
-                                    <TouchableOpacity
-                                        style={styles.playIcon}
-                                        onPress={() => item.audio.sound.replayAsync()}
-                                    >
-                                        <Icon name="play-circle" size={24} color="#2196F3"/> </TouchableOpacity>
-                                )}
+
                             </View>
                         )}
                         ListEmptyComponent={
@@ -427,6 +402,7 @@ const styles = StyleSheet.create({
     },
     authStatus: {
         fontSize: 16,
+        marginTop: 10,
         marginBottom: 8,
         color: '#333',
     },
